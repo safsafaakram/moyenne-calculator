@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculateur de Moyenne — Algérie</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 100%; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: oklch(0.965 0.003 150);
+      color: oklch(0.18 0.008 160);
+      line-height: 1.5;
+      min-height: 100dvh;
+      padding-bottom: 2rem;
+    }
+
+    /* ---- HEADER ---- */
+    .app-header {
+      background: oklch(0.42 0.08 170);
+      padding: 1.25rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .app-header .icon {
+      width: 2.5rem; height: 2.5rem;
+      background: oklch(1 0 0 / 0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: oklch(1 0 0);
+    }
+    .app-header h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: oklch(1 0 0);
+      letter-spacing: -0.01em;
+    }
+    .app-header p {
+      font-size: 0.72rem;
+      color: oklch(1 0 0 / 0.65);
+      margin-top: 0.1rem;
+    }
+
+    /* ---- TABS ---- */
+    .tab-row {
+      display: flex;
+      gap: 0.5rem;
+      padding: 1rem 1rem 0;
+      justify-content: center;
+    }
+    .tab-row.two button { flex: 1; max-width: 140px; }
+    .tab {
+      padding: 0.55rem 0;
+      border-radius: 50px;
+      border: 2px solid oklch(0.42 0.08 170);
+      background: transparent;
+      color: oklch(0.42 0.08 170);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab.active {
+      background: oklch(0.42 0.08 170);
+      color: oklch(1 0 0);
+    }
+    .tab:hover:not(.active) {
+      background: oklch(0.42 0.08 170 / 0.08);
+    }
+
+    .under-tabs {
+      display: flex;
+      border-bottom: 2px solid oklch(0.85 0.015 155);
+      margin: 0.75rem 1rem 0;
+    }
+    .under-tab {
+      flex: 1;
+      padding: 0.5rem 0;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: oklch(0.55 0.02 160);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      letter-spacing: 0.03em;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .under-tab.active {
+      color: oklch(0.42 0.08 170);
+      border-bottom-color: oklch(0.42 0.08 170);
+    }
+
+    /* ---- FORMULA BOX ---- */
+    .formula-box {
+      margin: 0.85rem 1rem 0;
+      background: oklch(1 0 0);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      font-size: 0.78rem;
+      color: oklch(0.5 0.015 160);
+      line-height: 1.6;
+      border: 1px solid oklch(0.88 0.01 155);
+    }
+    .formula-box strong { color: oklch(0.18 0.008 160); font-weight: 600; }
+    .formula-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .formula-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .tag-td   { background: oklch(0.92 0.03 230); color: oklch(0.35 0.08 240); }
+    .tag-tp   { background: oklch(0.9 0.06 290);  color: oklch(0.35 0.1 290); }
+    .tag-exam { background: oklch(0.92 0.06 50);   color: oklch(0.4 0.1 45);  }
+
+    /* ---- MODULE CARDS ---- */
+    .module-list { padding: 0.85rem 1rem 0; display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .mod-card {
+      background: oklch(1 0 0);
+      border-radius: 12px;
+      border: 1px solid oklch(0.88 0.008 155);
+      overflow: hidden;
+      opacity: 0;
+      animation: cardIn 0.25s ease-out forwards;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .mod-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 0.85rem;
+      background: oklch(0.96 0.01 160);
+      cursor: pointer;
+      user-select: none;
+    }
+    .mod-title {
+      flex: 1;
+      font-size: 0.85rem;
+      font-weight: 650;
+      color: oklch(0.18 0.008 160);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .mod-meta { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
+    .pill {
+      padding: 0.15rem 0.5rem;
+      border-radius: 5px;
+      font-size: 0.7rem;
+      font-weight: 650;
+    }
+    .pill-coef { background: oklch(0.93 0.04 50); color: oklch(0.4 0.08 45); }
+    .pill-type { background: oklch(0.95 0.01 160); color: oklch(0.4 0.05 160); border: 1px solid oklch(0.88 0.008 155); }
+    .mod-avg-pill {
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      min-width: 3rem;
+      text-align: center;
+    }
+    .avg-empty  { background: oklch(0.94 0.003 200); color: oklch(0.5 0.01 200); }
+    .avg-pass   { background: oklch(0.9 0.06 160);   color: oklch(0.3 0.08 160); }
+    .avg-fail   { background: oklch(0.9 0.06 30);    color: oklch(0.4 0.1 25); }
+
+    .mod-del {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: oklch(0.75 0.01 200);
+      font-size: 1rem;
+      padding: 0.1rem 0.2rem;
+      margin-left: 0.15rem;
+      transition: color 0.15s;
+    }
+    .mod-del:hover { color: oklch(0.5 0.15 25); }
+
+    .mod-body { padding: 0.85rem; }
+    .notes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.6rem;
+    }
+    .note-field { display: flex; flex-direction: column; gap: 0.2rem; }
+    .note-label {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: oklch(0.5 0.015 160);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .note-label .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .dot-td   { background: oklch(0.5 0.15 240); }
+    .dot-tp   { background: oklch(0.5 0.18 290); }
+    .dot-exam { background: oklch(0.55 0.15 45);  }
+
+    .note-input {
+      width: 100%;
+      padding: 0.5rem 0.5rem;
+      border: 1.5px solid oklch(0.85 0.01 155);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: oklch(0.18 0.008 160);
+      background: oklch(1 0 0);
+      text-align: center;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .note-input:focus {
+      border-color: oklch(0.42 0.08 170);
+      box-shadow: 0 0 0 3px oklch(0.42 0.08 170 / 0.12);
+    }
+    .note-input.ok   { border-color: oklch(0.5 0.12 160); color: oklch(0.35 0.1 160); }
+    .note-input.bad  { border-color: oklch(0.55 0.15 25);  color: oklch(0.45 0.12 25); }
+    .note-input:disabled {
+      background: oklch(0.96 0.005 200);
+      color: oklch(0.7 0.01 200);
+      pointer-events: none;
+    }
+    .note-input::-webkit-inner-spin-button,
+    .note-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .note-input[type="number"] { -moz-appearance: textfield; }
+
+    .weight-hint {
+      font-size: 0.63rem;
+      color: oklch(0.6 0.01 160);
+      text-align: center;
+      margin-top: 0.05rem;
+    }
+
+    /* ---- ADD MODULE ---- */
+    .add-section {
+      margin: 0.85rem 1rem 0;
+      background: oklch(1 0 0);
+      border-radius: 12px;
+      border: 1px solid oklch(0.88 0.008 155);
+      padding: 0.85rem;
+    }
+    .add-section h3 {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: oklch(0.55 0.015 160);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.6rem;
+    }
+    .add-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+    .add-field { display: flex; flex-direction: column; gap: 0.15rem; }
+    .add-field label {
+      font-size: 0.65rem;
+      color: oklch(0.55 0.015 160);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .add-field input,
+    .add-field select {
+      padding: 0.45rem 0.55rem;
+      border: 1.5px solid oklch(0.85 0.01 155);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      color: oklch(0.18 0.008 160);
+      background: oklch(1 0 0);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .add-field input:focus,
+    .add-field select:focus { border-color: oklch(0.42 0.08 170); }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.08s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: oklch(0.42 0.08 170);
+      color: oklch(1 0 0);
+      white-space: nowrap;
+      align-self: flex-end;
+    }
+    .btn-primary:hover { background: oklch(0.35 0.09 170); }
+
+    .btn-outline {
+      background: transparent;
+      color: oklch(0.5 0.015 160);
+      border: 1.5px solid oklch(0.85 0.01 155);
+    }
+    .btn-outline:hover {
+      border-color: oklch(0.5 0.015 160);
+      color: oklch(0.18 0.008 160);
+    }
+
+    .reset-wrap { padding: 0.7rem 1rem 0; text-align: center; }
+    .btn-reset {
+      background: transparent;
+      border: 1.5px solid oklch(0.85 0.01 155);
+      border-radius: 10px;
+      padding: 0.6rem 1.5rem;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: oklch(0.55 0.015 160);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-reset:hover {
+      border-color: oklch(0.5 0.15 25);
+      color: oklch(0.45 0.12 25);
+    }
+
+    /* ---- RESULT ---- */
+    .result-card {
+      margin: 0.85rem 1rem 0;
+      border-radius: 14px;
+      overflow: hidden;
+      display: none;
+    }
+    .result-card.visible { display: block; }
+
+    .result-top {
+      background: oklch(0.42 0.08 170);
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .result-main { flex: 1; }
+    .result-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: oklch(1 0 0 / 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.2rem;
+    }
+    .result-number {
+      font-size: 2.75rem;
+      font-weight: 750;
+      color: oklch(1 0 0);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .result-number sub {
+      font-size: 0.9rem;
+      font-weight: 500;
+      opacity: 0.6;
+      vertical-align: baseline;
+    }
+    .result-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.4rem;
+      background: oklch(1 0 0 / 0.15);
+      padding: 0.25rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: oklch(1 0 0);
+    }
+    .result-mention {
+      background: oklch(1 0 0 / 0.12);
+      border-radius: 10px;
+      padding: 0.7rem 1rem;
+      text-align: center;
+      min-width: 5rem;
+      flex-shrink: 0;
+    }
+    .mention-value {
+      font-size: 0.95rem;
+      font-weight: 750;
+      color: oklch(1 0 0);
+    }
+    .mention-label {
+      font-size: 0.65rem;
+      color: oklch(1 0 0 / 0.6);
+      margin-top: 0.1rem;
+    }
+
+    .result-stats {
+      background: oklch(1 0 0);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid oklch(0.88 0.01 155);
+    }
+    .rstat {
+      padding: 0.7rem 0.5rem;
+      text-align: center;
+      border-right: 1px solid oklch(0.88 0.01 155);
+    }
+    .rstat:last-child { border-right: none; }
+    .rstat-value {
+      font-size: 1.1rem;
+      font-weight: 750;
+      color: oklch(0.42 0.08 170);
+    }
+    .rstat-label {
+      font-size: 0.65rem;
+      color: oklch(0.55 0.015 160);
+      margin-top: 0.1rem;
+    }
+
+    .progress-track {
+      background: oklch(1 0 0);
+      height: 6px;
+    }
+    .progress-bar {
+      height: 6px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+      border-radius: 0 3px 3px 0;
+    }
+
+    /* ---- MENTION GUIDE ---- */
+    .mention-guide {
+      margin: 0.7rem 1rem 0;
+      background: oklch(1 0 0);
+      border-radius: 12px;
+      border: 1px solid oklch(0.88 0.008 155);
+      padding: 0.85rem;
+      display: none;
+    }
+    .mention-guide.visible { display: block; }
+    .mention-guide h3 {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: oklch(0.55 0.015 160);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.6rem;
+    }
+    .mention-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 7px;
+      margin-bottom: 0.2rem;
+    }
+    .m-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .m-range {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: oklch(0.18 0.008 160);
+      min-width: 4.5rem;
+    }
+    .m-name {
+      font-size: 0.78rem;
+      color: oklch(0.5 0.015 160);
+      margin-left: auto;
+    }
+
+    /* ---- EMPTY STATE ---- */
+    .empty-modules {
+      padding: 2rem 1rem;
+      text-align: center;
+      color: oklch(0.55 0.015 160);
+      font-size: 0.85rem;
+    }
+
+    @media (min-width: 540px) {
+      .app-header { padding: 1.5rem 2rem; }
+      .app-header h1 { font-size: 1.3rem; }
+      .tab-row, .under-tabs, .module-list,
+      .formula-box, .add-section, .result-card,
+      .mention-guide, .reset-wrap {
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 540px;
+      }
+      .mention-guide.visible,
+      .result-card.visible { max-width: 540px; }
+      .formula-box,
+      .add-section,
+      .result-card,
+      .mention-guide { width: calc(100% - 2rem); }
+      .module-list { width: calc(100% - 2rem); }
+    }
+
+    @media (min-width: 800px) {
+      .tab-row, .under-tabs, .module-list,
+      .formula-box, .add-section, .result-card,
+      .mention-guide, .reset-wrap {
+        max-width: 640px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="icon">&#x1F393;</div>
+  <div>
+    <h1>Calculateur de Moyenne</h1>
+    <p>Systeme universitaire algerien</p>
+  </div>
+</header>
+
+<div class="tab-row two">
+  <button class="tab" data-sem="1">Semestre 1</button>
+  <button class="tab active" data-sem="2">Semestre 2</button>
+</div>
+
+<div class="under-tabs">
+  <button class="under-tab active" data-sess="normal">Session Normale</button>
+  <button class="under-tab" data-sess="rattrapage">Rattrapage</button>
+</div>
+
+<div class="formula-box">
+  <strong>Comment la moyenne est calculee :</strong>
+  La note de controle continu (TD seul, ou moyenne TD+TP) compte pour 40%, l'examen final pour 60%.
+  Si TD et TP existent : controle = (TD+TP)/2.
+  La moyenne du semestre = (moyenne_module x coef) / coef.
+  <div class="formula-tags">
+    <span class="formula-tag tag-td">TD  40%</span>
+    <span class="formula-tag tag-tp">(TD+TP)/2  40%</span>
+    <span class="formula-tag tag-exam">Exam  60%</span>
+  </div>
+</div>
+
+<div class="module-list" id="moduleList"></div>
+
+<div class="add-section">
+  <h3>Ajouter un module</h3>
+  <div class="add-row">
+    <div class="add-field" style="flex:3; min-width:120px">
+      <label>Nom du module</label>
+      <input type="text" id="nName" placeholder="ex. Algebre 2" />
+    </div>
+    <div class="add-field" style="width:55px">
+      <label>Coef</label>
+      <input type="number" id="nCoef" placeholder="2" min="1" max="10" style="width:55px" />
+    </div>
+    <div class="add-field" style="width:100px">
+      <label>Type</label>
+      <select id="nType">
+        <option value="td_tp_exam">TD+TP+Exam</option>
+        <option value="td_exam">TD+Exam</option>
+        <option value="tp_exam">TP+Exam</option>
+        <option value="exam_only">Exam only</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="addBtn">Ajouter</button>
+  </div>
+</div>
+
+<div class="reset-wrap">
+  <button class="btn-reset" id="resetBtn">Reinitialiser toutes les notes</button>
+</div>
+
+<div class="result-card" id="resultCard">
+  <div class="result-top">
+    <div class="result-main">
+      <div class="result-label">Moyenne du semestre</div>
+      <div class="result-number" id="avgNum">—<sub> /20</sub></div>
+      <div class="result-status" id="statusTxt">Saisir les notes</div>
+    </div>
+    <div class="result-mention" id="mentionBox">
+      <div class="mention-value" id="mentionBig">—</div>
+      <div class="mention-label">Mention</div>
+    </div>
+  </div>
+  <div class="result-stats">
+    <div class="rstat"><div class="rstat-value" id="rCoef">0</div><div class="rstat-label">Total coef.</div></div>
+    <div class="rstat"><div class="rstat-value" id="rFilled">0/0</div><div class="rstat-label">Notes saisies</div></div>
+    <div class="rstat"><div class="rstat-value" id="rCredits">0</div><div class="rstat-label">Credits</div></div>
+  </div>
+  <div class="progress-track">
+    <div class="progress-bar" id="progressBar" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="mention-guide" id="mentionGuide">
+  <h3>Bareme officiel</h3>
+  <div class="mention-row" style="background:oklch(0.95 0.06 90)">
+    <div class="m-dot" style="background:oklch(0.65 0.15 90)"></div>
+    <span class="m-range">16.00 - 20.00</span>
+    <span class="m-name">Tres Bien</span>
+  </div>
+  <div class="mention-row" style="background:oklch(0.93 0.06 150)">
+    <div class="m-dot" style="background:oklch(0.55 0.18 150)"></div>
+    <span class="m-range">14.00 - 15.99</span>
+    <span class="m-name">Bien</span>
+  </div>
+  <div class="mention-row" style="background:oklch(0.92 0.04 220)">
+    <div class="m-dot" style="background:oklch(0.5 0.15 230)"></div>
+    <span class="m-range">12.00 - 13.99</span>
+    <span class="m-name">Assez Bien</span>
+  </div>
+  <div class="mention-row" style="background:oklch(0.94 0.03 170)">
+    <div class="m-dot" style="background:oklch(0.5 0.12 170)"></div>
+    <span class="m-range">10.00 - 11.99</span>
+    <span class="m-name">Passable</span>
+  </div>
+  <div class="mention-row" style="background:oklch(0.93 0.06 30)">
+    <div class="m-dot" style="background:oklch(0.5 0.15 25)"></div>
+    <span class="m-range">0.00 - 9.99</span>
+    <span class="m-name">Ajourne(e)</span>
+  </div>
+</div>
+
+<script>
+(function() {
+  const DEFAULTS = {
+    s1: {
+      normal: [
+        { name:"Mathematiques 1",             coef:3, type:"td_exam",    td:"", tp:"", exam:"" },
+        { name:"Physique 1",                  coef:3, type:"td_tp_exam", td:"", tp:"", exam:"" },
+        { name:"Chimie",                      coef:2, type:"td_tp_exam", td:"", tp:"", exam:"" },
+        { name:"Algebre 1",                   coef:2, type:"td_exam",    td:"", tp:"", exam:"" },
+        { name:"Analyse 1",                   coef:3, type:"td_exam",    td:"", tp:"", exam:"" },
+        { name:"Informatique",                coef:2, type:"tp_exam",    td:"", tp:"", exam:"" },
+      ],
+      rattrapage: []
+    },
+    s2: {
+      normal: [
+        { name:"Electricite et magnetisme",     coef:3, type:"td_tp_exam", td:"", tp:"", exam:"" },
+        { name:"Thermodynamique",               coef:3, type:"td_tp_exam", td:"", tp:"", exam:"" },
+        { name:"Initiation a la programmation", coef:2, type:"tp_exam",    td:"", tp:"", exam:"" },
+        { name:"TP Elec. et magnetisme",        coef:1, type:"tp_exam",    td:"", tp:"", exam:"" },
+        { name:"TP Thermodynamique",            coef:1, type:"tp_exam",    td:"", tp:"", exam:"" },
+        { name:"Algebre 2",                     coef:2, type:"td_exam",    td:"", tp:"", exam:"" },
+        { name:"Analyse 2",                     coef:3, type:"td_exam",    td:"", tp:"", exam:"" },
+        { name:"Logiciels libres",              coef:2, type:"tp_exam",    td:"", tp:"", exam:"" },
+      ],
+      rattrapage: []
+    }
+  };
+
+  let state = {
+    sem: 's2',
+    sess: 'normal',
+    data: JSON.parse(JSON.stringify(DEFAULTS))
+  };
+
+  function mods() { return state.data[state.sem][state.sess]; }
+
+  function modAvg(m) {
+    const td   = parseFloat(m.td);
+    const tp   = parseFloat(m.tp);
+    const exam = parseFloat(m.exam);
+    const hasTD   = m.type.includes('td') && m.td !== '' && !isNaN(td) && td >= 0 && td <= 20;
+    const hasTP   = m.type.includes('tp') && m.tp !== '' && !isNaN(tp) && tp >= 0 && tp <= 20;
+    const hasExam = m.exam !== '' && !isNaN(exam) && exam >= 0 && exam <= 20;
+    if (!hasExam) return null;
+    if (m.type === 'exam_only') return exam;
+    let cc = null;
+    if (m.type === 'td_tp_exam') {
+      if (hasTD && hasTP) cc = (td + tp) / 2;
+      else if (hasTD)     cc = td;
+      else if (hasTP)     cc = tp;
+    } else if (m.type === 'td_exam') {
+      cc = hasTD ? td : null;
+    } else if (m.type === 'tp_exam') {
+      cc = hasTP ? tp : null;
+    }
+    return cc !== null ? cc * 0.4 + exam * 0.6 : exam;
+  }
+
+  function getMention(avg) {
+    if (avg >= 16) return { label:'Tres Bien',  color:'oklch(0.65 0.15 90)',  bg:'oklch(0.95 0.06 90)' };
+    if (avg >= 14) return { label:'Bien',        color:'oklch(0.55 0.18 150)', bg:'oklch(0.93 0.06 150)' };
+    if (avg >= 12) return { label:'Assez Bien',  color:'oklch(0.5 0.15 230)', bg:'oklch(0.92 0.04 220)' };
+    if (avg >= 10) return { label:'Passable',    color:'oklch(0.5 0.12 170)', bg:'oklch(0.94 0.03 170)' };
+    return           { label:'Ajourne(e)',      color:'oklch(0.5 0.15 25)',  bg:'oklch(0.93 0.06 30)' };
+  }
+
+  function inputCls(v) {
+    if (v === '') return '';
+    const n = parseFloat(v);
+    return (!isNaN(n) && n >= 0 && n <= 20) ? 'ok' : 'bad';
+  }
+
+  function render() {
+    const list = document.getElementById('moduleList');
+    const ms = mods();
+
+    if (!ms.length) {
+      list.innerHTML = '<div class="empty-modules">Aucun module. Ajoutez-en un ci-dessous.</div>';
+      updateResult();
+      return;
+    }
+
+    list.innerHTML = ms.map((m, i) => {
+      const avg    = modAvg(m);
+      const avgStr = avg !== null ? avg.toFixed(2) : null;
+      const avgCls = avg === null ? 'avg-empty' : avg >= 10 ? 'avg-pass' : 'avg-fail';
+      const avgTxt = avgStr ? avgStr + '/20' : '—';
+
+      const hasTD = m.type.includes('td');
+      const hasTP = m.type.includes('tp');
+
+      return `<div class="mod-card" style="animation-delay:${i * 0.035}s">
+        <div class="mod-header" data-toggle="${i}">
+          <div class="mod-title">${m.name}</div>
+          <div class="mod-meta">
+            <span class="pill pill-coef">Coef ${m.coef}</span>
+            <span class="mod-avg-pill ${avgCls}">${avgTxt}</span>
+            <button class="mod-del" data-del="${i}">&times;</button>
+          </div>
+        </div>
+        <div class="mod-body" id="body-${i}">
+          <div class="notes-grid">
+            ${hasTD ? `<div class="note-field">
+              <div class="note-label"><span class="dot dot-td"></span>TD</div>
+              <input type="number" class="note-input ${inputCls(m.td)}" placeholder="-" min="0" max="20" step="0.25"
+                value="${m.td}" data-idx="${i}" data-field="td" />
+              <div class="weight-hint">poids 40%</div>
+            </div>` : `<div class="note-field"><div class="note-label"><span class="dot" style="background:oklch(0.85 0.005 200)"></span>TD</div><input class="note-input" disabled placeholder="N/A"/></div>`}
+
+            ${hasTP ? `<div class="note-field">
+              <div class="note-label"><span class="dot dot-tp"></span>TP</div>
+              <input type="number" class="note-input ${inputCls(m.tp)}" placeholder="-" min="0" max="20" step="0.25"
+                value="${m.tp}" data-idx="${i}" data-field="tp" />
+              <div class="weight-hint">${m.type === 'td_tp_exam' ? '(TD+TP)/2 x 40%' : 'poids 40%'}</div>
+            </div>` : `<div class="note-field"><div class="note-label"><span class="dot" style="background:oklch(0.85 0.005 200)"></span>TP</div><input class="note-input" disabled placeholder="N/A"/></div>`}
+
+            <div class="note-field">
+              <div class="note-label"><span class="dot dot-exam"></span>Examen</div>
+              <input type="number" class="note-input ${inputCls(m.exam)}" placeholder="-" min="0" max="20" step="0.25"
+                value="${m.exam}" data-idx="${i}" data-field="exam" />
+              <div class="weight-hint">poids 60%</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    updateResult();
+  }
+
+  function updateResult() {
+    const ms = mods();
+    let sumW = 0, sumP = 0, filled = 0;
+    ms.forEach(m => { sumW += m.coef; });
+    ms.forEach(m => {
+      const a = modAvg(m);
+      if (a !== null) { sumP += a * m.coef; filled++; }
+    });
+
+    document.getElementById('rCoef').textContent = sumW;
+    document.getElementById('rFilled').textContent = filled + '/' + ms.length;
+    document.getElementById('rCredits').textContent = sumW * 1.5;
+
+    const resultCard = document.getElementById('resultCard');
+    const mentionGuide = document.getElementById('mentionGuide');
+    const avgEl   = document.getElementById('avgNum');
+    const statEl  = document.getElementById('statusTxt');
+    const progEl  = document.getElementById('progressBar');
+    const mBigEl  = document.getElementById('mentionBig');
+
+    if (filled === 0 || ms.length === 0) {
+      resultCard.classList.remove('visible');
+      mentionGuide.classList.remove('visible');
+      return;
+    }
+
+    resultCard.classList.add('visible');
+    mentionGuide.classList.add('visible');
+
+    let usedCoef = 0;
+    ms.forEach(m => { if (modAvg(m) !== null) usedCoef += m.coef; });
+    const avg = sumP / usedCoef;
+    const r   = Math.round(avg * 100) / 100;
+
+    avgEl.innerHTML = r.toFixed(2) + '<sub> /20</sub>';
+    progEl.style.width = (r / 20 * 100).toFixed(1) + '%';
+
+    const men = getMention(r);
+    progEl.style.background = men.color;
+    mBigEl.textContent = men.label;
+
+    if (filled < ms.length) {
+      statEl.textContent = (ms.length - filled) + ' note(s) manquante(s)';
+      statEl.style.background = 'oklch(1 0 0 / 0.15)';
+    } else {
+      statEl.textContent = r >= 10 ? 'Admis(e)' : 'Ajourne(e)';
+      statEl.style.background = r >= 10 ? 'oklch(1 0 0 / 0.2)' : 'oklch(0.55 0.18 25 / 0.3)';
+    }
+  }
+
+  function setNote(i, field, value) {
+    mods()[i][field] = value;
+    updateResult();
+
+    const avg = modAvg(mods()[i]);
+    const avgStr = avg !== null ? avg.toFixed(2) : null;
+    const cards = document.querySelectorAll('.mod-card');
+    if (cards[i]) {
+      const pill = cards[i].querySelector('.mod-avg-pill');
+      if (pill) {
+        pill.textContent = avgStr ? avgStr + '/20' : '—';
+        pill.className = 'mod-avg-pill ' + (avg === null ? 'avg-empty' : avg >= 10 ? 'avg-pass' : 'avg-fail');
+      }
+    }
+  }
+
+  function deleteModule(i) {
+    mods().splice(i, 1);
+    render();
+  }
+
+  function addModule() {
+    const name = document.getElementById('nName').value.trim();
+    const coef = parseInt(document.getElementById('nCoef').value) || 2;
+    const type = document.getElementById('nType').value;
+    if (!name) { document.getElementById('nName').focus(); return; }
+    mods().push({ name, coef, type, td:'', tp:'', exam:'' });
+    document.getElementById('nName').value = '';
+    document.getElementById('nCoef').value = '';
+    render();
+  }
+
+  function resetAll() {
+    mods().forEach(m => { m.td = ''; m.tp = ''; m.exam = ''; });
+    render();
+  }
+
+  function switchSem(n) {
+    state.sem = 's' + n;
+    document.querySelectorAll('.tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.sem === String(n));
+    });
+    if (!state.data[state.sem].rattrapage.length) {
+      state.data[state.sem].rattrapage = JSON.parse(JSON.stringify(state.data[state.sem].normal)).map(m => ({...m, td:'', tp:'', exam:''}));
+    }
+    render();
+  }
+
+  function switchSess(s) {
+    state.sess = s;
+    document.querySelectorAll('.under-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.sess === s);
+    });
+    if (s === 'rattrapage' && !state.data[state.sem].rattrapage.length) {
+      state.data[state.sem].rattrapage = JSON.parse(JSON.stringify(state.data[state.sem].normal)).map(m => ({...m, td:'', tp:'', exam:''}));
+    }
+    render();
+  }
+
+  /* ---- Event binding ---- */
+  document.addEventListener('click', function(e) {
+    const tab = e.target.closest('.tab');
+    if (tab) { switchSem(parseInt(tab.dataset.sem)); return; }
+
+    const utab = e.target.closest('.under-tab');
+    if (utab) { switchSess(utab.dataset.sess); return; }
+
+    const delBtn = e.target.closest('[data-del]');
+    if (delBtn) { deleteModule(parseInt(delBtn.dataset.del)); return; }
+
+    const toggle = e.target.closest('[data-toggle]');
+    if (toggle) {
+      const body = document.getElementById('body-' + toggle.dataset.toggle);
+      if (body) body.style.display = body.style.display === 'none' ? '' : 'none';
+    }
+  });
+
+  document.addEventListener('input', function(e) {
+    const input = e.target.closest('[data-idx]');
+    if (input) {
+      const i = parseInt(input.dataset.idx);
+      const field = input.dataset.field;
+      const value = input.value;
+      mods()[i][field] = value;
+      input.className = 'note-input ' + inputCls(value);
+      setNote(i, field, value);
+    }
+  });
+
+  document.getElementById('addBtn').addEventListener('click', addModule);
+
+  document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+  document.getElementById('nName').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') addModule();
+  });
+
+  // Boot
+  switchSem(2);
+})();
+</script>
+</body>
+</html>
